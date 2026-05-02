@@ -1,7 +1,7 @@
 import React from "react";
 import { Container, Row, Col, Card, Button } from "react-bootstrap";
 
-let Wishlist = ({ wishlist, onRemove, onBack }) => {
+const Wishlist = ({ wishlist, onRemove, onBack }) => {
   return (
     <Container>
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -18,7 +18,6 @@ let Wishlist = ({ wishlist, onRemove, onBack }) => {
           {wishlist.map((anime) => (
             <Col key={anime.mal_id} xs={6} md={3}>
               <Card className="bg-dark text-white border-secondary h-100 shadow-sm">
-                {/* Standardized image size */}
                 <Card.Img
                   src={anime.images.jpg.image_url}
                   style={{
@@ -32,7 +31,6 @@ let Wishlist = ({ wishlist, onRemove, onBack }) => {
                     {anime.title}
                   </div>
                   <div className="d-grid gap-1">
-                    {/* Google Search Link */}
                     <Button
                       size="sm"
                       variant="warning"

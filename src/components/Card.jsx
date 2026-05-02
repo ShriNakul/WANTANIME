@@ -1,13 +1,10 @@
 import React from "react";
-import { Col, Card, Button } from "react-bootstrap";
+import { Col, Button } from "react-bootstrap";
 
-let AnimeCard = ({ anime, onToggleWishlist, isWishlisted }) => {
+const Card = ({ anime, onToggleWishlist, isWishlisted }) => {
   return (
     <Col xs={12} md={4} className="d-flex justify-content-center">
       <div className="text-center">
-        {" "}
-        {/* Container to hold everything */}
-        {/* IMAGE CONTAINER: This must be relative for the button to stick to it */}
         <div
           className="position-relative"
           style={{ width: "240px", height: "340px" }}
@@ -23,8 +20,6 @@ let AnimeCard = ({ anime, onToggleWishlist, isWishlisted }) => {
             }}
             alt={anime?.title}
           />
-
-          {/* THE BUTTON: Now anchored to the 240x340 box specifically */}
           <Button
             variant={isWishlisted ? "danger" : "light"}
             className="position-absolute rounded-circle d-flex align-items-center justify-content-center shadow"
@@ -43,7 +38,6 @@ let AnimeCard = ({ anime, onToggleWishlist, isWishlisted }) => {
             {isWishlisted ? "❤️" : "♡"}
           </Button>
         </div>
-        {/* TITLE: Outside the relative box so it doesn't overlap */}
         <div
           className="mt-3 fw-bold text-uppercase small text-white"
           style={{ maxWidth: "240px" }}
@@ -55,4 +49,4 @@ let AnimeCard = ({ anime, onToggleWishlist, isWishlisted }) => {
   );
 };
 
-export default AnimeCard;
+export default Card;

@@ -20,15 +20,13 @@ function App() {
   const [animeList, setAnimeList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activeCategory, setActiveCategory] = useState("Popular");
-  const [view, setView] = useState("browse"); // "browse" or "wishlist"
+  const [view, setView] = useState("browse");
 
-  // Load wishlist from LocalStorage on mount
   const [wishlist, setWishlist] = useState(() => {
     const saved = localStorage.getItem("anime-wishlist");
     return saved ? JSON.parse(saved) : [];
   });
 
-  // Save wishlist to LocalStorage whenever it changes
   useEffect(() => {
     localStorage.setItem("anime-wishlist", JSON.stringify(wishlist));
   }, [wishlist]);
@@ -36,7 +34,6 @@ function App() {
   const fetchAnime = async (category) => {
     setLoading(true);
     try {
-      let url = "";
       if (category === "My picks") {
         const queries = ["Death Note", "Demon Slayer", "JoJo"];
         const results = await Promise.all(
@@ -48,7 +45,7 @@ function App() {
         );
         setAnimeList(results.map((r) => r.data[0]));
       } else if (category === "Popular") {
-        const res = await fetch(`https://api.jikan.moe/v4/top/anime?limit=3`);
+        const res = await fetch(`https://api.jikan.moe/v4/top/anime?limit=6`);
         const result = await res.json();
         setAnimeList(result.data);
       } else {
@@ -56,7 +53,7 @@ function App() {
           `https://api.jikan.moe/v4/anime?genres=${GENRE_MAP[category]}&limit=10&order_by=score&sort=desc`,
         );
         const result = await res.json();
-        setAnimeList(result.data.sort(() => 0.5 - Math.random()).slice(0, 3));
+        setAnimeList(result.data.sort(() => 0.5 - Math.random()).slice(0, 6));
       }
     } catch (e) {
       console.error(e);
@@ -75,6 +72,13 @@ function App() {
         : [...prev, anime],
     );
   };
+
+  const filteredList =
+    activeCategory === "My picks"
+      ? animeList
+      : animeList.filter(
+          (anime) => !wishlist.some((w) => w.mal_id === anime.mal_id),
+        );
 
   return (
     <div className="bg-black min-vh-100 text-white pb-5 font-monospace">
@@ -118,7 +122,7 @@ function App() {
               </div>
             ) : (
               <Row className="justify-content-center g-4">
-                {animeList.map((anime) => (
+                {filteredList.map((anime) => (
                   <Card
                     key={anime.mal_id}
                     anime={anime}
