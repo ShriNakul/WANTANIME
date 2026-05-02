@@ -2,12 +2,14 @@ import React from "react";
 import { Container, Row, Col, Card, Button } from "react-bootstrap";
 
 const ListManager = ({ title, items, onRemove, onFinish, onBack }) => {
+  const isFinishedView = title === "Finished Anime";
+
   return (
     <Container>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="text-uppercase fw-bold m-0">{title}</h2>
         <Button variant="outline-light" onClick={onBack}>
-          ← Back
+          ← Back To Browsing
         </Button>
       </div>
 
@@ -27,22 +29,24 @@ const ListManager = ({ title, items, onRemove, onFinish, onBack }) => {
                     {anime.title}
                   </div>
                   <div className="d-grid gap-1">
-                    <Button
-                      size="sm"
-                      variant="warning"
-                      href={`https://www.google.com/search?q=where+to+watch+${encodeURIComponent(anime.title)}+anime`}
-                      target="_blank"
-                    >
-                      Watch
-                    </Button>
-                    {onFinish && (
-                      <Button
-                        size="sm"
-                        variant="success"
-                        onClick={() => onFinish(anime)}
-                      >
-                        Finished
-                      </Button>
+                    {!isFinishedView && (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="warning"
+                          href={`https://www.google.com/search?q=where+to+watch+${encodeURIComponent(anime.title)}+anime`}
+                          target="_blank"
+                        >
+                          Watch
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="success"
+                          onClick={() => onFinish(anime)}
+                        >
+                          Finished
+                        </Button>
+                      </>
                     )}
                     <Button
                       size="sm"

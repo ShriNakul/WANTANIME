@@ -19,7 +19,7 @@ function App() {
   const [animeList, setAnimeList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activeCategory, setActiveCategory] = useState("Popular");
-  const [view, setView] = useState("browse"); // "browse", "list", or "finished"
+  const [view, setView] = useState("browse");
 
   const [myList, setMyList] = useState(() => {
     const saved = localStorage.getItem("anime-list");
