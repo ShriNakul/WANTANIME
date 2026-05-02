@@ -1,8 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { Navbar, Container, Button, Spinner, Row } from "react-bootstrap";
+import {
+  Navbar,
+  Container,
+  Button,
+  Spinner,
+  Row,
+  Modal,
+  Col,
+} from "react-bootstrap";
 import Card from "./components/Card";
 import ListManager from "./components/ListManager";
 import "bootstrap/dist/css/bootstrap.min.css";
+import "./App.css";
 
 const GENRE_MAP = {
   Popular: "popular",
@@ -20,6 +29,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [activeCategory, setActiveCategory] = useState("Popular");
   const [view, setView] = useState("browse");
+  const [selectedAnime, setSelectedAnime] = useState(null);
 
   const [myList, setMyList] = useState(() => {
     const saved = localStorage.getItem("anime-list");
@@ -113,8 +123,7 @@ function App() {
             onClick={() => setView("browse")}
             style={{ cursor: "pointer" }}
           >
-            WANTANIME: <br />
-            アニメを見たいんですよね？
+            WANTANIME: アニメを見たいんですよね？
           </Navbar.Brand>
           <div className="d-flex gap-2">
             <Button
@@ -163,6 +172,7 @@ function App() {
                   <Card
                     key={anime.mal_id}
                     anime={anime}
+                    onSelect={setSelectedAnime}
                     badgeButton={
                       <Button
                         variant={
@@ -181,7 +191,10 @@ function App() {
                           zIndex: "10",
                           border: "2px solid white",
                         }}
-                        onClick={() => toggleList(anime)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleList(anime);
+                        }}
                       >
                         {myList.some((m) => m.mal_id === anime.mal_id)
                           ? "❤️"
@@ -197,6 +210,7 @@ function App() {
           <ListManager
             title={view === "list" ? "My Watch List" : "Finished Anime"}
             items={view === "list" ? myList : finishedList}
+            onSelect={setSelectedAnime}
             onRemove={(anime) =>
               view === "list"
                 ? toggleList(anime)
@@ -209,6 +223,61 @@ function App() {
           />
         )}
       </Container>
+
+      <Modal
+        show={selectedAnime !== null}
+        onHide={() => setSelectedAnime(null)}
+        centered
+        size="lg"
+      >
+        {selectedAnime && (
+          <div className="modal-content">
+            <Modal.Header closeButton closeVariant="white">
+              <Modal.Title>{selectedAnime.title}</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <Row>
+                <Col md={4}>
+                  <img
+                    src={selectedAnime.images.jpg.large_image_url}
+                    className="img-fluid rounded shadow border border-light"
+                    alt={selectedAnime.title}
+                  />
+                </Col>
+                <Col md={8}>
+                  <h5 className="text-warning">Synopsis</h5>
+                  <p className="small opacity-75">
+                    {selectedAnime.synopsis || "No description available."}
+                  </p>
+                  <hr className="bg-secondary" />
+                  <div className="d-flex flex-wrap gap-3 small">
+                    <div>
+                      <strong>Score:</strong> ⭐ {selectedAnime.score || "N/A"}
+                    </div>
+                    <div>
+                      <strong>Episodes:</strong> {selectedAnime.episodes || "?"}
+                    </div>
+                    <div>
+                      <strong>Status:</strong> {selectedAnime.status}
+                    </div>
+                    <div>
+                      <strong>Rank:</strong> #{selectedAnime.rank || "N/A"}
+                    </div>
+                  </div>
+                </Col>
+              </Row>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button
+                variant="outline-light"
+                onClick={() => setSelectedAnime(null)}
+              >
+                Close
+              </Button>
+            </Modal.Footer>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

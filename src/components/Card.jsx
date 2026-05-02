@@ -1,19 +1,18 @@
 import React from "react";
 import { Col } from "react-bootstrap";
 
-const Card = ({ anime, children, badgeButton }) => {
+const Card = ({ anime, children, badgeButton, onSelect }) => {
   return (
-    <Col xs={12} md={4} className="d-flex justify-content-center">
+    <Col xs={12} md={4} className="d-flex justify-content-center mb-4">
       <div className="text-center">
         <div
-          className="position-relative"
+          className="custom-card-container shadow-lg"
           style={{ width: "240px", height: "340px" }}
+          onClick={() => onSelect(anime)}
         >
           <img
             src={anime?.images.jpg.large_image_url}
-            className="rounded-5 shadow-lg"
             style={{
-              border: "5px solid #fff",
               width: "100%",
               height: "100%",
               objectFit: "cover",
