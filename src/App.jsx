@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Navbar, Container, Button, Spinner, Row } from "react-bootstrap";
-import AnimeCard from "./components/AnimeCard";
+import AnimeCard from "./components/Card";
 import ListManager from "./components/ListManager";
 import "bootstrap/dist/css/bootstrap.min.css";
 
