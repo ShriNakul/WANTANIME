@@ -7,6 +7,7 @@ import {
   Row,
   Modal,
   Col,
+  Form,
 } from "react-bootstrap";
 import Card from "./components/Card";
 import ListManager from "./components/ListManager";
@@ -21,7 +22,6 @@ const GENRE_MAP = {
   Comedy: 4,
   Sports: 30,
   Isekai: 62,
-  "My picks": "custom",
 };
 
 function App() {
@@ -30,6 +30,8 @@ function App() {
   const [activeCategory, setActiveCategory] = useState("Popular");
   const [view, setView] = useState("browse");
   const [selectedAnime, setSelectedAnime] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
 
   const [myList, setMyList] = useState(() => {
     const saved = localStorage.getItem("anime-list");
@@ -47,26 +49,11 @@ function App() {
   }, [myList, finishedList]);
 
   const fetchAnime = async (category) => {
+    setSearchTerm("");
+    setIsSearching(false);
     setLoading(true);
     try {
-      if (category === "My picks") {
-        const queries = [
-          "Death Note",
-          "JoJo's Bizarre Adventure",
-          "Demon Slayer",
-          "Jujutsu Kaisen",
-          "Sakamoto Days",
-          "One Piece",
-        ];
-        const results = await Promise.all(
-          queries.map((q) =>
-            fetch(
-              `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(q)}&limit=1`,
-            ).then((res) => res.json()),
-          ),
-        );
-        setAnimeList(results.map((r) => r.data[0]).filter(Boolean));
-      } else if (category === "Popular") {
+      if (category === "Popular") {
         const res = await fetch(`https://api.jikan.moe/v4/top/anime?limit=15`);
         const result = await res.json();
         setAnimeList(result.data);
@@ -77,6 +64,25 @@ function App() {
         const result = await res.json();
         setAnimeList(result.data.sort(() => 0.5 - Math.random()));
       }
+    } catch (e) {
+      console.error(e);
+    }
+    setLoading(false);
+  };
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!searchTerm.trim()) return;
+    setLoading(true);
+    setActiveCategory(null);
+    setIsSearching(true);
+    try {
+      const res = await fetch(
+        `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(searchTerm)}&limit=20`,
+      );
+      const result = await res.json();
+      setAnimeList(result.data);
+      setView("browse");
     } catch (e) {
       console.error(e);
     }
@@ -100,31 +106,56 @@ function App() {
     setFinishedList((prev) => [...prev, anime]);
   };
 
-  const filteredList = (
-    activeCategory === "My picks"
-      ? animeList
-      : animeList.filter(
-          (anime) =>
-            !myList.some((m) => m.mal_id === anime.mal_id) &&
-            !finishedList.some((f) => f.mal_id === anime.mal_id),
-        )
-  ).slice(0, 6);
+  const filteredList = animeList.filter(
+    (anime) =>
+      !myList.some((m) => m.mal_id === anime.mal_id) &&
+      !finishedList.some((f) => f.mal_id === anime.mal_id),
+  );
+
+  const displayList = isSearching ? filteredList : filteredList.slice(0, 6);
 
   return (
     <div className="bg-black min-vh-100 text-white pb-5 font-monospace">
       <Navbar
         bg="dark"
         variant="dark"
-        className="py-3 border-bottom border-secondary mb-4"
+        expand="lg"
+        className="py-3 border-bottom border-secondary mb-4 sticky-top"
       >
         <Container>
           <Navbar.Brand
-            className="text-uppercase small"
-            onClick={() => setView("browse")}
+            className="text-uppercase fw-bold"
+            onClick={() => {
+              setView("browse");
+              fetchAnime("Popular");
+              setActiveCategory("Popular");
+            }}
             style={{ cursor: "pointer" }}
           >
             WANTANIME: アニメを見たいんですよね？
           </Navbar.Brand>
+
+          <Form
+            className="d-flex mx-auto my-2 my-lg-0"
+            style={{ maxWidth: "400px", width: "100%" }}
+            onSubmit={handleSearch}
+          >
+            <Form.Control
+              type="search"
+              placeholder="Search anime..."
+              className="bg-black text-white border-secondary rounded-pill me-2"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <Button
+              variant="warning"
+              className="rounded-pill px-4 fw-bold"
+              type="submit"
+            >
+              GO
+            </Button>
+          </Form>
+
           <div className="d-flex gap-2">
             <Button
               variant="outline-warning"
@@ -168,7 +199,7 @@ function App() {
               </div>
             ) : (
               <Row className="justify-content-center g-4">
-                {filteredList.map((anime) => (
+                {displayList.map((anime) => (
                   <Card
                     key={anime.mal_id}
                     anime={anime}
