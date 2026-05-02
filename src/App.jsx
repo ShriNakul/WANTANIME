@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Navbar, Container, Button, Spinner, Row } from "react-bootstrap";
-import Card from "./components/Card";
-import Wishlist from "./components/Wishlist";
+import AnimeCard from "./components/AnimeCard";
+import ListManager from "./components/ListManager";
 import "bootstrap/dist/css/bootstrap.min.css";
-import "./App.css";
 
 const GENRE_MAP = {
   Popular: "popular",
@@ -20,22 +19,35 @@ function App() {
   const [animeList, setAnimeList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activeCategory, setActiveCategory] = useState("Popular");
-  const [view, setView] = useState("browse");
+  const [view, setView] = useState("browse"); // "browse", "list", or "finished"
 
-  const [wishlist, setWishlist] = useState(() => {
-    const saved = localStorage.getItem("anime-wishlist");
+  const [myList, setMyList] = useState(() => {
+    const saved = localStorage.getItem("anime-list");
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [finishedList, setFinishedList] = useState(() => {
+    const saved = localStorage.getItem("anime-finished");
     return saved ? JSON.parse(saved) : [];
   });
 
   useEffect(() => {
-    localStorage.setItem("anime-wishlist", JSON.stringify(wishlist));
-  }, [wishlist]);
+    localStorage.setItem("anime-list", JSON.stringify(myList));
+    localStorage.setItem("anime-finished", JSON.stringify(finishedList));
+  }, [myList, finishedList]);
 
   const fetchAnime = async (category) => {
     setLoading(true);
     try {
       if (category === "My picks") {
-        const queries = ["Death Note", "Demon Slayer", "JoJo"];
+        const queries = [
+          "Death Note",
+          "Demon Slayer",
+          "JoJo",
+          "Naruto",
+          "Bleach",
+          "One Piece",
+        ];
         const results = await Promise.all(
           queries.map((q) =>
             fetch(`https://api.jikan.moe/v4/anime?q=${q}&limit=1`).then((res) =>
@@ -45,15 +57,15 @@ function App() {
         );
         setAnimeList(results.map((r) => r.data[0]));
       } else if (category === "Popular") {
-        const res = await fetch(`https://api.jikan.moe/v4/top/anime?limit=6`);
+        const res = await fetch(`https://api.jikan.moe/v4/top/anime?limit=15`);
         const result = await res.json();
         setAnimeList(result.data);
       } else {
         const res = await fetch(
-          `https://api.jikan.moe/v4/anime?genres=${GENRE_MAP[category]}&limit=10&order_by=score&sort=desc`,
+          `https://api.jikan.moe/v4/anime?genres=${GENRE_MAP[category]}&limit=20&order_by=score&sort=desc`,
         );
         const result = await res.json();
-        setAnimeList(result.data.sort(() => 0.5 - Math.random()).slice(0, 6));
+        setAnimeList(result.data.sort(() => 0.5 - Math.random()));
       }
     } catch (e) {
       console.error(e);
@@ -65,20 +77,28 @@ function App() {
     fetchAnime("Popular");
   }, []);
 
-  const toggleWishlist = (anime) => {
-    setWishlist((prev) =>
+  const toggleList = (anime) => {
+    setMyList((prev) =>
       prev.find((item) => item.mal_id === anime.mal_id)
         ? prev.filter((item) => item.mal_id !== anime.mal_id)
         : [...prev, anime],
     );
   };
 
-  const filteredList =
+  const markAsFinished = (anime) => {
+    setMyList((prev) => prev.filter((item) => item.mal_id !== anime.mal_id));
+    setFinishedList((prev) => [...prev, anime]);
+  };
+
+  const filteredList = (
     activeCategory === "My picks"
       ? animeList
       : animeList.filter(
-          (anime) => !wishlist.some((w) => w.mal_id === anime.mal_id),
-        );
+          (anime) =>
+            !myList.some((m) => m.mal_id === anime.mal_id) &&
+            !finishedList.some((f) => f.mal_id === anime.mal_id),
+        )
+  ).slice(0, 6);
 
   return (
     <div className="bg-black min-vh-100 text-white pb-5 font-monospace">
@@ -88,12 +108,29 @@ function App() {
         className="py-3 border-bottom border-secondary mb-4"
       >
         <Container>
-          <Navbar.Brand className="text-uppercase small">
-            WANTANIME: アニメを見たいんですよね？You want to watch anime, right?
+          <Navbar.Brand
+            className="text-uppercase small"
+            onClick={() => setView("browse")}
+            style={{ cursor: "pointer" }}
+          >
+            WANTANIME
           </Navbar.Brand>
-          <Button variant="outline-warning" onClick={() => setView("wishlist")}>
-            Wishlist ({wishlist.length})
-          </Button>
+          <div className="d-flex gap-2">
+            <Button
+              variant="outline-warning"
+              size="sm"
+              onClick={() => setView("list")}
+            >
+              My List ({myList.length})
+            </Button>
+            <Button
+              variant="outline-success"
+              size="sm"
+              onClick={() => setView("finished")}
+            >
+              Finished ({finishedList.length})
+            </Button>
+          </div>
         </Container>
       </Navbar>
 
@@ -115,7 +152,6 @@ function App() {
                 </Button>
               ))}
             </div>
-
             {loading ? (
               <div className="text-center mt-5">
                 <Spinner animation="grow" variant="light" />
@@ -123,11 +159,11 @@ function App() {
             ) : (
               <Row className="justify-content-center g-4">
                 {filteredList.map((anime) => (
-                  <Card
+                  <AnimeCard
                     key={anime.mal_id}
                     anime={anime}
-                    onToggleWishlist={toggleWishlist}
-                    isWishlisted={wishlist.some(
+                    onToggleWishlist={toggleList}
+                    isWishlisted={myList.some(
                       (item) => item.mal_id === anime.mal_id,
                     )}
                   />
@@ -136,9 +172,17 @@ function App() {
             )}
           </>
         ) : (
-          <Wishlist
-            wishlist={wishlist}
-            onRemove={toggleWishlist}
+          <ListManager
+            title={view === "list" ? "My Watch List" : "Finished Anime"}
+            items={view === "list" ? myList : finishedList}
+            onRemove={(anime) =>
+              view === "list"
+                ? toggleList(anime)
+                : setFinishedList((prev) =>
+                    prev.filter((i) => i.mal_id !== anime.mal_id),
+                  )
+            }
+            onFinish={view === "list" ? markAsFinished : null}
             onBack={() => setView("browse")}
           />
         )}
