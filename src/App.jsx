@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Navbar, Container, Button, Spinner, Row } from "react-bootstrap";
-import AnimeCard from "./components/Card";
+import Card from "./components/Card";
 import ListManager from "./components/ListManager";
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -42,20 +42,20 @@ function App() {
       if (category === "My picks") {
         const queries = [
           "Death Note",
+          "JoJo's Bizarre Adventure",
           "Demon Slayer",
-          "JoJo",
-          "Naruto",
-          "Bleach",
+          "Jujutsu Kaisen",
+          "Sakamoto Days",
           "One Piece",
         ];
         const results = await Promise.all(
           queries.map((q) =>
-            fetch(`https://api.jikan.moe/v4/anime?q=${q}&limit=1`).then((res) =>
-              res.json(),
-            ),
+            fetch(
+              `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(q)}&limit=1`,
+            ).then((res) => res.json()),
           ),
         );
-        setAnimeList(results.map((r) => r.data[0]));
+        setAnimeList(results.map((r) => r.data[0]).filter(Boolean));
       } else if (category === "Popular") {
         const res = await fetch(`https://api.jikan.moe/v4/top/anime?limit=15`);
         const result = await res.json();
@@ -113,7 +113,8 @@ function App() {
             onClick={() => setView("browse")}
             style={{ cursor: "pointer" }}
           >
-            WANTANIME
+            WANTANIME: <br />
+            アニメを見たいんですよね？
           </Navbar.Brand>
           <div className="d-flex gap-2">
             <Button
@@ -159,13 +160,34 @@ function App() {
             ) : (
               <Row className="justify-content-center g-4">
                 {filteredList.map((anime) => (
-                  <AnimeCard
+                  <Card
                     key={anime.mal_id}
                     anime={anime}
-                    onToggleWishlist={toggleList}
-                    isWishlisted={myList.some(
-                      (item) => item.mal_id === anime.mal_id,
-                    )}
+                    badgeButton={
+                      <Button
+                        variant={
+                          myList.some((m) => m.mal_id === anime.mal_id)
+                            ? "danger"
+                            : "light"
+                        }
+                        className="position-absolute rounded-circle d-flex align-items-center justify-content-center shadow"
+                        style={{
+                          top: "15px",
+                          right: "15px",
+                          width: "40px",
+                          height: "40px",
+                          padding: "0",
+                          fontSize: "1.2rem",
+                          zIndex: "10",
+                          border: "2px solid white",
+                        }}
+                        onClick={() => toggleList(anime)}
+                      >
+                        {myList.some((m) => m.mal_id === anime.mal_id)
+                          ? "❤️"
+                          : "♡"}
+                      </Button>
+                    }
                   />
                 ))}
               </Row>

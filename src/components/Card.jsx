@@ -1,7 +1,7 @@
 import React from "react";
-import { Col, Button } from "react-bootstrap";
+import { Col } from "react-bootstrap";
 
-const Card = ({ anime, onToggleWishlist, isWishlisted }) => {
+const Card = ({ anime, children, badgeButton }) => {
   return (
     <Col xs={12} md={4} className="d-flex justify-content-center">
       <div className="text-center">
@@ -20,29 +20,15 @@ const Card = ({ anime, onToggleWishlist, isWishlisted }) => {
             }}
             alt={anime?.title}
           />
-          <Button
-            variant={isWishlisted ? "danger" : "light"}
-            className="position-absolute rounded-circle d-flex align-items-center justify-content-center shadow"
-            style={{
-              top: "15px",
-              right: "15px",
-              width: "40px",
-              height: "40px",
-              padding: "0",
-              fontSize: "1.2rem",
-              zIndex: "10",
-              border: "2px solid white",
-            }}
-            onClick={() => onToggleWishlist(anime)}
-          >
-            {isWishlisted ? "❤️" : "♡"}
-          </Button>
+          {badgeButton}
         </div>
+
         <div
           className="mt-3 fw-bold text-uppercase small text-white"
           style={{ maxWidth: "240px" }}
         >
-          {anime?.title}
+          <div className="mb-2 text-truncate">{anime?.title}</div>
+          <div className="d-grid gap-2">{children}</div>
         </div>
       </div>
     </Col>
